@@ -343,7 +343,8 @@ public class MMMainFrame extends IcyFrame
         // stop activities
         if (mmstudio != null)
         {
-            mmstudio.closeAllAcquisitions();
+            mmstudio.acquisitions().haltAcquisition();
+//            closeAllAcquisitions();
             mmstudio.closeSequence(true);
         }
 
@@ -417,7 +418,7 @@ public class MMMainFrame extends IcyFrame
                         }
                         catch (Exception e1)
                         {
-                            mmstudio.logError(e1);
+                            ReportingUtils.logError(e1);
                         }
 
                         ConfiguratorDlg2 configurator = new ConfiguratorDlg2(mmstudio.getCore(), MicroManager
@@ -472,7 +473,7 @@ public class MMMainFrame extends IcyFrame
                             }
                             catch (Exception e1)
                             {
-                                mmstudio.logError(e1);
+                            	ReportingUtils.logError(e1);
                             }
 
                             // define new default config file
@@ -532,9 +533,9 @@ public class MMMainFrame extends IcyFrame
                     @Override
                     public void actionPerformed(ActionEvent e)
                     {
-                        PropertyEditor editor = new PropertyEditor();
-                        editor.setGui(mmstudio);
-                        editor.setCore(mmstudio.getCore());
+                        PropertyEditor editor = new PropertyEditor(mmstudio);
+                        //TODO
+//                        editor.setCore(mmstudio.getCore());
                         editor.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                         final IcyFrame propertyBrowser = FrameUtils.addMMWindowToDesktopPane(editor);
                         propertyBrowser.setSize(380, 480);
