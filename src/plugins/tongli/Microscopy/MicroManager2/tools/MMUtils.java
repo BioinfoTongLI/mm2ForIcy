@@ -17,9 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.micromanager.internal.ConfigGroupPad;
 import org.micromanager.acquisition.internal.TaggedImageQueue;
-import org.micromanager.data.Coords;
-import org.micromanager.data.Image;
-import org.micromanager.data.Metadata;
 import org.micromanager.internal.utils.MDUtils;
 
 import icy.file.FileUtil;
@@ -48,6 +45,7 @@ import icy.util.OMEUtil;
 import icy.util.ReflectionUtil;
 import icy.util.StringUtil;
 import loci.formats.ome.OMEXMLMetadataImpl;
+import mmcorej.TaggedImage;
 import ome.xml.model.Pixels;
 import ome.xml.model.primitives.NonNegativeInteger;
 import ome.xml.model.primitives.Timestamp;
@@ -189,11 +187,11 @@ public class MMUtils
     }
 
     /**
-     * Return true if the specified list of Image contains a <code>null</code> or poison image.
+     * Return true if the specified list of TaggedImage contains a <code>null</code> or poison image.
      */
-    public static boolean hasNullOrPoison(List<Image> images)
+    public static boolean hasNullOrPoison(List<TaggedImage> images)
     {
-        for (Image image : images)
+        for (TaggedImage image : images)
             if ((image == null) || TaggedImageQueue.isPoison(image))
                 return true;
 
@@ -201,20 +199,20 @@ public class MMUtils
     }
 
     /**
-     * Convert a list of {@link Image} (Micro Manager) to {@link IcyBufferedImage} (Icy) where each
-     * {@link Image} represents one channel of the output image.
+     * Convert a list of {@link TaggedImage} (Micro Manager) to {@link IcyBufferedImage} (Icy) where each
+     * {@link TaggedImage} represents one channel of the output image.
      * 
      * @throws JSONException
      */
-    public static IcyBufferedImage convertToIcyImage(List<Image> images) throws JSONException
+    public static IcyBufferedImage convertToIcyImage(List<TaggedImage> images) throws JSONException
     {
-        final List<Image> goodImages = new ArrayList<Image>(images.size());
+        final List<TaggedImage> goodImages = new ArrayList<TaggedImage>(images.size());
         int w, h, bpp;
 
         w = -1;
         h = -1;
         bpp = -1;
-        for (Image image : images)
+        for (TaggedImage image : images)
         {
             if ((image != null) && !TaggedImageQueue.isPoison(image))
             {
@@ -252,11 +250,11 @@ public class MMUtils
     }
 
     /**
-     * Convert a {@link Image} (Micro-Manager) to {@link IcyBufferedImage} (Icy).
+     * Convert a {@link TaggedImage} (Micro-Manager) to {@link IcyBufferedImage} (Icy).
      * 
      * @throws JSONException
      */
-    public static IcyBufferedImage convertToIcyImage(Image img) throws JSONException
+    public static IcyBufferedImage convertToIcyImage(TaggedImage img) throws JSONException
     {
         return convertToIcyImage(CollectionUtil.createArrayList(img));
     }
@@ -410,7 +408,7 @@ public class MMUtils
     }
 
     /**
-     * Set the Image metadata.
+     * Set the TaggedImage metadata.
      * 
      * @param t
      *        wanted T position (frame) of the image, set to <code>-1</code> to keep current value
@@ -426,7 +424,7 @@ public class MMUtils
      *        wanted global size C (number of channel), set to <code>-1</code> to keep current value
      * @throws JSONException
      */
-    public static void setImageMetadata(Image taggedImage, int t, int z, int c, int sizeT, int sizeZ, int sizeC)
+    public static void setImageMetadata(TaggedImage taggedImage, int t, int z, int c, int sizeT, int sizeZ, int sizeC)
             throws JSONException
     {
         if (taggedImage == null)
@@ -449,30 +447,30 @@ public class MMUtils
     }
 
     /**
-     * Set image in the specified Sequence object from the given Image.<br>
+     * Set image in the specified Sequence object from the given TaggedImage.<br>
      * Returns <code>false</code> if specified image is null or empty, or if the Sequence image format is not compatible
-     * with Image.
+     * with TaggedImage.
      * 
      * @param sequence
      *        destination sequence
-     * @param image
-     *        image to set in the sequence, metadata are used to define the T,Z,C position of the image (see
-     *        {@link #setImageMetadata(Image, int, int, int, int, int, int)} method)
+     * @param taggedImage
+     *        Tagged image to set in the sequence, metadata are used to define the T,Z,C position of the image (see
+     *        {@link #setImageMetadata(TaggedImage, int, int, int, int, int, int)} method)
      * @param startDate
      *        Date when acquisition was started (can be used to set delta T information when it's missing from
      *        metadata), set it to 0 to ignore it.
      * @return <code>true</code> if the operation succeed and <code>false</code> otherwise.
      * @throws JSONException
-     * @see {@link #setImageMetadata(Image, int, int, int, int, int, int)}
+     * @see {@link #setImageMetadata(TaggedImage, int, int, int, int, int, int)}
      */
-    public static boolean setImage(Sequence sequence, Image image, long startDate) throws JSONException
+    public static boolean setImage(Sequence sequence, TaggedImage taggedImage, long startDate) throws JSONException
     {
         // incorrect image --> do nothing
-        if ((image == null) || TaggedImageQueue.isPoison(image))
+        if ((taggedImage == null) || TaggedImageQueue.isPoison(taggedImage))
             return false;
 
-        final Metadata metadata = image.getMetadata();
-        image
+        final JSONObject tags = taggedImage.tags;
+
         // not compatible with the sequence --> return false
         if (!isCompatible(sequence, tags))
             return false;
@@ -569,18 +567,18 @@ public class MMUtils
     }
 
     /**
-     * Set image in the specified Sequence object from the given Image.<br>
+     * Set image in the specified Sequence object from the given TaggedImage.<br>
      * Returns <code>false</code> if specified image is null or empty, or if the Sequence image format is not compatible
-     * with Image.
+     * with TaggedImage.
      * 
      * @param sequence
      *        destination sequence
-     * @param image
-     *        image to set in the sequence
+     * @param taggedImage
+     *        Tagged image to set in the sequence
      * @return <code>true</code> if the operation succeed and <code>false</code> otherwise.
      * @throws JSONException
      */
-    public static boolean setImage(Sequence sequence, Image taggedImage) throws JSONException
+    public static boolean setImage(Sequence sequence, TaggedImage taggedImage) throws JSONException
     {
         return setImage(sequence, taggedImage, 0L);
     }
@@ -591,21 +589,20 @@ public class MMUtils
      * 
      * @throws JSONException
      */
-    public static boolean isCompatible(Sequence sequence, Image image)
+    public static boolean isCompatible(Sequence sequence, JSONObject metadata) throws JSONException
     {
         if (sequence.isEmpty())
             return true;
 
-        return (sequence.getSizeX() == image.getWidth())
-                && (sequence.getSizeY() == image.getHeight())
-                //TODO in the image object, there is no more information about total number of channel
-//                && (sequence.getSizeC() == image.getCoords().)
-                && (sequence.getDataType_().getSize() == (image.getBytesPerPixel() + 7) / 8);
+        return (sequence.getSizeX() == MDUtils.getWidth(metadata))
+                && (sequence.getSizeY() == MDUtils.getHeight(metadata))
+                && (sequence.getSizeC() == MDUtils.getNumChannels(metadata))
+                && (sequence.getDataType_().getSize() == ((MDUtils.getBitDepth(metadata) + 7) / 8));
     }
 
     /**
      * Create an empty IcyBufferedImage using properties in given JSON metadata object. It can be either the one from
-     * Image or the summaryMetadata (see {@link MicroManager#getAcquisitionMetaData()})
+     * TaggedImage or the summaryMetadata (see {@link MicroManager#getAcquisitionMetaData()})
      * 
      * @throws JSONException
      */

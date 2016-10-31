@@ -27,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.micromanager.internal.MMStudio;
 import org.micromanager.acquisition.SequenceSettings;
+import org.micromanager.data.Image;
 import org.micromanager.internal.dialogs.AcqControlDlg;
 import org.micromanager.internal.utils.MDUtils;
 
@@ -252,7 +253,7 @@ public class AcquisitionHandler implements AcquisitionListener
     }
 
     @Override
-    public void acqImgReveived(TaggedImage newImg)
+    public void acqImgReveived(Image newImg)
     {
         ThreadUtil.invokeLater(new Runnable()
         {

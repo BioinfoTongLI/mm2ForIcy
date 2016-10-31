@@ -10,8 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.micromanager.acquisition.SequenceSettings;
 import org.micromanager.data.Coords;
-import org.micromanager.data.Image;
-import org.micromanager.internal.utils.MDUtils;
+import org.micromanager.data.internal.DefaultImage;
 
 import icy.main.Icy;
 import icy.sequence.Sequence;
@@ -49,7 +48,7 @@ public class AcquisitionResult
         return new ArrayList<Sequence>(sequences.values());
     }
 
-    public void imageReceived(Image image) throws JSONException
+    public void imageReceived(DefaultImage image) throws JSONException
     {
         final Coords coords = image.getCoords();
         final Integer position = Integer.valueOf(coords.getStagePosition());
@@ -67,7 +66,7 @@ public class AcquisitionResult
         }
 
         // set image
-        MMUtils.setImage(seq, image, startTime);
+        MMUtils.setImage(seq, image.legacyToTaggedImage(), startTime);
         // first image ? --> try to get more informations from summary metadata
         if (seq.getNumImage() == 1)
             MMUtils.setMetadata(seq, summaryMetadata);
