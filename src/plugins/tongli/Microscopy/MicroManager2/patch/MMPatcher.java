@@ -66,7 +66,7 @@ import icy.system.ClassPatcher;
  */
 public class MMPatcher
 {
-    private static final String PATCH_PKG = "plugins.tprovoost.Microscopy.MicroManager.patch";
+    private static final String PATCH_PKG = "plugins.tongli.Microscopy.MicroManager2.patch";
     private static final String PATCH_SUFFIX = "Methods";
 
     /** Overrides class behavior of Micro-Manager classes by injecting method hooks. */
@@ -81,7 +81,7 @@ public class MMPatcher
         hacker.replaceMethod("org.micromanager.internal.SnapLiveManager", "public void setLiveMode(boolean arg0)");
 
         // this directly load the new patched MMStudio class in the Plugin class loader
-        hacker.loadClass("org.micromanager.MMStudio", classLoader, null);
+        hacker.loadClass("org.micromanager.internal.MMStudio", classLoader, null);
         
 //        ici il faudrait faire en sorte que que le pluginloader ajoute la class dans la liste des charg�e
 //        sinon on a une erreur de duplication (bidouiller le JarClassLoader pour autoriser �a peut �tre)

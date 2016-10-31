@@ -51,26 +51,26 @@
 
 package plugins.tongli.Microscopy.MicroManager2.patch;
 
-import org.micromanager.internal.MMStudio;
+import org.micromanager.internal.SnapLiveManager;
 
 import icy.system.IcyExceptionHandler;
 import plugins.tongli.Microscopy.MicroManager2.MicroManager;
 
 /**
- * Overrides {@link MMStudio} methods.
+ * Overrides {@link SnapLiveManager} methods.
  * 
  * @author Stephane Dallongeville
  */
-public class MMStudioMethods
+public class SnapLiveManagerMethods
 {
-    /** Replaces <code>MMStudio.isLiveModeOn()</code> method */
-    public static boolean isLiveModeOn(final MMStudio obj)
+    /** Replaces <code>SnapLiveManager.getIsLiveModeOn()</code> method */
+    public static boolean getIsLiveModeOn(final SnapLiveManager obj)
     {
         return MicroManager.isLiveRunning();
     }
 
-    /** Replaces <code>MMStudio.enableLiveMode(boolean enable)</code> method */
-    public static void enableLiveMode(final MMStudio obj, final boolean enable)
+    /** Replaces <code>SnapLiveManager.setLiveMode(boolean enable)</code> method */
+    public static void setLiveMode(final SnapLiveManager obj, final boolean enable)
     {
         try
         {

@@ -9,6 +9,8 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.micromanager.acquisition.SequenceSettings;
+import org.micromanager.data.Coords;
+import org.micromanager.data.Image;
 import org.micromanager.internal.utils.MDUtils;
 
 import icy.main.Icy;
@@ -47,10 +49,10 @@ public class AcquisitionResult
         return new ArrayList<Sequence>(sequences.values());
     }
 
-    public void imageReceived(TaggedImage taggedImage) throws JSONException
+    public void imageReceived(Image image) throws JSONException
     {
-        final JSONObject tags = taggedImage.tags;
-        final Integer position = Integer.valueOf(MDUtils.getPositionIndex(tags));
+        final Coords coords = image.getCoords();
+        final Integer position = Integer.valueOf(coords.getStagePosition());
 
         Sequence seq = sequences.get(position);
         if (seq == null)
@@ -65,7 +67,7 @@ public class AcquisitionResult
         }
 
         // set image
-        MMUtils.setImage(seq, taggedImage, startTime);
+        MMUtils.setImage(seq, image, startTime);
         // first image ? --> try to get more informations from summary metadata
         if (seq.getNumImage() == 1)
             MMUtils.setMetadata(seq, summaryMetadata);
