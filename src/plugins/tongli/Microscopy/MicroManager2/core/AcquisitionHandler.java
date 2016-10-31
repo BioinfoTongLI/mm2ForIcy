@@ -73,8 +73,7 @@ public class AcquisitionHandler implements AcquisitionListener
 
         // not existing yet ? --> create it now
         if (advAcqDialog == null)
-            advAcqDialog = new AcqControlDlg(mmstudio.getAcquisitionEngine(), mainFrame.getMainPreferences(), mmstudio,
-                    mainFrame.getOptions());
+            advAcqDialog = new AcqControlDlg(mmstudio.getAcquisitionEngine(),mmstudio);
 
         // remove some of the default window listener
         final WindowListener[] winListeners = advAcqDialog.getWindowListeners();

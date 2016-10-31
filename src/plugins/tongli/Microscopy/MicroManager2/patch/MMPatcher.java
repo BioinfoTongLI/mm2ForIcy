@@ -76,10 +76,9 @@ public class MMPatcher
         final ClassPatcher hacker = new ClassPatcher(classLoader, PATCH_PKG, PATCH_SUFFIX);
 
         // need to load it first
-
         // override behavior of org.micromanager.MMStudio
-        hacker.replaceMethod("org.micromanager.MMStudio", "public boolean isLiveModeOn()");
-        hacker.replaceMethod("org.micromanager.MMStudio", "public void enableLiveMode(boolean enable)");
+        hacker.replaceMethod("org.micromanager.internal.SnapLiveManager", "public boolean getIsLiveModeOn()");
+        hacker.replaceMethod("org.micromanager.internal.SnapLiveManager", "public void setLiveMode(boolean arg0)");
 
         // this directly load the new patched MMStudio class in the Plugin class loader
         hacker.loadClass("org.micromanager.MMStudio", classLoader, null);

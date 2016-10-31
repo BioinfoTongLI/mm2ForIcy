@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.text.ParseException;
 
 import javax.swing.JButton;
@@ -18,8 +19,11 @@ import javax.swing.JTextField;
 
 import mmcorej.CMMCore;
 
-import org.micromanager.MMOptions;
+import org.micromanager.data.internal.multipagetiff.StorageMultipageTiff;
+import org.micromanager.internal.MMStudio;
+import org.micromanager.internal.dialogs.AcqControlDlg;
 import org.micromanager.internal.logging.LogFileManager;
+import org.micromanager.internal.utils.DefaultUserProfile;
 import org.micromanager.internal.utils.NumberUtils;
 import org.micromanager.internal.utils.ReportingUtils;
 import org.micromanager.internal.utils.UIMonitor;
@@ -44,8 +48,8 @@ public class OptionsPanel extends JPanel implements ActionListener
 
     // internals
     MMMainFrame mainFrame_;
-    MMOptions opts_;
     CMMCore core_;
+    MMStudio mmstudio_;
 
     /**
      * Create the dialog
@@ -57,13 +61,12 @@ public class OptionsPanel extends JPanel implements ActionListener
      * @param core
      *        - The Micro-Manager Core object
      */
-    public OptionsPanel(MMMainFrame mainFrame, MMOptions opts, CMMCore core)
+    public OptionsPanel(MMMainFrame mainFrame,  MMStudio mmstudio)
     {
         super();
-
+        mmstudio_ = mmstudio;
         mainFrame_ = mainFrame;
-        opts_ = opts;
-        core_ = core;
+        core_ = mmstudio.getCMMCore();
 
         initialize();
         refresh();
@@ -87,7 +90,7 @@ public class OptionsPanel extends JPanel implements ActionListener
         JLabel lblSequenceBufferSize = new JLabel("Sequence buffer size");
         add(lblSequenceBufferSize, gbc_lblSequenceBufferSize);
 
-        bufSizeField_ = new JTextField(Integer.toString(opts_.circularBufferSizeMB_), 5);
+        bufSizeField_ = new JTextField(Integer.toString(MMStudio.getCircularBufferSize()), 5);
         GridBagConstraints gbc_bufSizeField_ = new GridBagConstraints();
         gbc_bufSizeField_.fill = GridBagConstraints.BOTH;
         gbc_bufSizeField_.insets = new Insets(0, 0, 5, 5);
@@ -105,11 +108,11 @@ public class OptionsPanel extends JPanel implements ActionListener
 
         separateFilesForPositionsMPTiffCheckBox = new JCheckBox();
         separateFilesForPositionsMPTiffCheckBox.setText("Save XY positions in separate Image stack files");
-        separateFilesForPositionsMPTiffCheckBox.setSelected(opts_.mpTiffSeparateFilesForPositions_);
+        separateFilesForPositionsMPTiffCheckBox.setSelected(StorageMultipageTiff.getShouldSplitPositions());
 
         metadataFileWithMultipageTiffCheckBox = new JCheckBox();
         metadataFileWithMultipageTiffCheckBox.setText("Create metadata.txt file with Image stack files");
-        metadataFileWithMultipageTiffCheckBox.setSelected(opts_.mpTiffMetadataFile_);
+        metadataFileWithMultipageTiffCheckBox.setSelected(StorageMultipageTiff.getShouldGenerateMetadataFile());
 
         GridBagConstraints gbc_metadataFileWithMultipageTiffCheckBox = new GridBagConstraints();
         gbc_metadataFileWithMultipageTiffCheckBox.fill = GridBagConstraints.VERTICAL;
@@ -130,7 +133,7 @@ public class OptionsPanel extends JPanel implements ActionListener
 
         syncExposureMainAndMDA = new JCheckBox();
         syncExposureMainAndMDA.setText("Sync exposure between Main and MDA windows");
-        syncExposureMainAndMDA.setSelected(opts_.syncExposureMainAndMDA_);
+        syncExposureMainAndMDA.setSelected(AcqControlDlg.getShouldSyncExposure());
 
         hideMDAdisplay = new JCheckBox();
         hideMDAdisplay.setToolTipText("Checking this option will disable image display when doing MDA");
@@ -175,12 +178,12 @@ public class OptionsPanel extends JPanel implements ActionListener
 
         deleteLogCheckBox = new JCheckBox();
         deleteLogCheckBox.setText("Delete log files after");
-        deleteLogCheckBox.setSelected(opts_.deleteOldCoreLogs_);
+        deleteLogCheckBox.setSelected(MMStudio.getShouldDeleteOldCoreLogs());
 
         debugLogEnabledCheckBox = new JCheckBox();
         debugLogEnabledCheckBox.setText("Enable debug logging");
         debugLogEnabledCheckBox.setToolTipText("Enable verbose logging for troubleshooting and debugging");
-        debugLogEnabledCheckBox.setSelected(opts_.debugLogEnabled_);
+        debugLogEnabledCheckBox.setSelected(core_.debugLogEnabled());
 
         GridBagConstraints gbc_debugLogEnabledCheckBox = new GridBagConstraints();
         gbc_debugLogEnabledCheckBox.fill = GridBagConstraints.VERTICAL;
@@ -199,7 +202,7 @@ public class OptionsPanel extends JPanel implements ActionListener
         gbc_deleteLogCheckBox.gridy = 7;
         add(deleteLogCheckBox, gbc_deleteLogCheckBox);
 
-        logDeleteDaysField_ = new JTextField(Integer.toString(opts_.deleteCoreLogAfterDays_), 3);
+        logDeleteDaysField_ = new JTextField(Integer.toString(MMStudio.getCoreLogLifetimeDays()), 3);
         GridBagConstraints gbc_logDeleteDaysField_ = new GridBagConstraints();
         gbc_logDeleteDaysField_.fill = GridBagConstraints.BOTH;
         gbc_logDeleteDaysField_.insets = new Insets(0, 0, 0, 5);
@@ -267,7 +270,7 @@ public class OptionsPanel extends JPanel implements ActionListener
     {
         int seqBufSize;
         int deleteLogDays;
-        final int oldBufsize = opts_.circularBufferSizeMB_;
+        final int oldBufsize = MMStudio.getCircularBufferSize();
 
         try
         {
@@ -280,24 +283,29 @@ public class OptionsPanel extends JPanel implements ActionListener
             return;
         }
 
-        opts_.circularBufferSizeMB_ = seqBufSize;
-        opts_.deleteCoreLogAfterDays_ = deleteLogDays;
-        opts_.mpTiffSeparateFilesForPositions_ = separateFilesForPositionsMPTiffCheckBox.isSelected();
-        opts_.mpTiffMetadataFile_ = metadataFileWithMultipageTiffCheckBox.isSelected();
-        opts_.syncExposureMainAndMDA_ = syncExposureMainAndMDA.isSelected();
-        opts_.deleteOldCoreLogs_ = deleteLogCheckBox.isSelected();
-        opts_.debugLogEnabled_ = debugLogEnabledCheckBox.isSelected();
-        core_.enableDebugLog(opts_.debugLogEnabled_);
-        UIMonitor.enable(opts_.debugLogEnabled_);
+        MMStudio.setCircularBufferSize(seqBufSize);
+        MMStudio.setCoreLogLifetimeDays(deleteLogDays);
+        StorageMultipageTiff.setShouldSplitPositions(separateFilesForPositionsMPTiffCheckBox.isSelected());
+        StorageMultipageTiff.setShouldGenerateMetadataFile(metadataFileWithMultipageTiffCheckBox.isSelected());
+        AcqControlDlg.setShouldSyncExposure(syncExposureMainAndMDA.isSelected());
+        MMStudio.setShouldDeleteOldCoreLogs(deleteLogCheckBox.isSelected());
+        core_.enableDebugLog(debugLogEnabledCheckBox.isSelected());
+        UIMonitor.enable(core_.debugLogEnabled());
 
-        opts_.saveSettings();
-
+        //TODO 
+//        core_.save.saveSettings();
+        try {
+			mmstudio_.getUserProfile().syncToDisk();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
         // adjust memory footprint if necessary
-        if (oldBufsize != opts_.circularBufferSizeMB_)
+        if (oldBufsize != seqBufSize)
         {
             try
             {
-                core_.setCircularBufferMemoryFootprint(opts_.circularBufferSizeMB_);
+                core_.setCircularBufferMemoryFootprint(seqBufSize);
             }
             catch (Exception exc)
             {
