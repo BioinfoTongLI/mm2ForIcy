@@ -1,6 +1,5 @@
 package plugins.tongli.Microscopy.MicroManager2.gui;
 
-import icy.gui.dialog.MessageDialog;
 import icy.plugin.PluginDescriptor;
 import icy.plugin.PluginLauncher;
 import icy.plugin.PluginLoader;

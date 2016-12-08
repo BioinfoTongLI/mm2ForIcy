@@ -49,7 +49,6 @@ import org.micromanager.internal.MMStudio;
 import org.micromanager.internal.MMVersion;
 import org.micromanager.internal.MainFrame;
 import org.micromanager.internal.PropertyEditor;
-import org.micromanager.internal.SnapLiveManager;
 import org.micromanager.internal.hcwizard.MMConfigFileException;
 import org.micromanager.internal.hcwizard.MicroscopeModel;
 import org.micromanager.internal.dialogs.AcqControlDlg;

@@ -56,10 +56,6 @@ public class OptionsPanel extends JPanel implements ActionListener
      * 
      * @param mainFrame
      *        - Main frame
-     * @param opts
-     *        - Application wide preferences
-     * @param core
-     *        - The Micro-Manager Core object
      */
     public OptionsPanel(MMMainFrame mainFrame,  MMStudio mmstudio)
     {
